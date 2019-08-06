@@ -26,8 +26,11 @@ export declare class GoogleMaps {
     private googleMapsApi;
     private markerClustering;
     private _currentInfoWindow;
+    private drawnMarkers;
+    private drawnCircles;
     longitude: number;
     latitude: number;
+    circleRadius: number;
     zoom: number;
     disableDefaultUi: boolean;
     markers: any;
@@ -41,6 +44,7 @@ export declare class GoogleMaps {
     polygons: any;
     drawingControl: true;
     drawingControlOptions: {};
+    drawSingleElement: boolean;
     map: any;
     _renderedMarkers: any[];
     _markersSubscription: any;
@@ -63,6 +67,7 @@ export declare class GoogleMaps {
     latitudeChanged(): void;
     longitudeChanged(): void;
     zoomChanged(newValue: any): void;
+    circleRadiusChanged(): void;
     markersChanged(newValue: Marker[]): void;
     markerCollectionChange(splices: any): void;
     zoomToMarkerBounds(force?: boolean): void;
@@ -77,4 +82,6 @@ export declare class GoogleMaps {
     renderPolygon(polygonObject?: any): void;
     polygonsChanged(newValue: any): void;
     polygonCollectionChange(splices: any): void;
+    private clearDrawnCircles;
+    private clearDrawnMarkers;
 }

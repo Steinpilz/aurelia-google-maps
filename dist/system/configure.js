@@ -10,7 +10,7 @@ System.register([], function (exports_1, context_1) {
                     this._config = {
                         apiScript: 'https://maps.googleapis.com/maps/api/js',
                         apiKey: '',
-                        clientId: '',
+                        client: '',
                         apiLibraries: '',
                         region: '',
                         language: '',

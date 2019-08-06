@@ -37,8 +37,12 @@ export class GoogleMaps {
     private markerClustering: MarkerClustering;
     private _currentInfoWindow: any = null;
 
+    private drawnMarkers: any[] = [];
+    private drawnCircles: any[] = [];
+
     @bindable longitude: number = 0;
     @bindable latitude: number = 0;
+    @bindable circleRadius: number = 0;
     @bindable zoom: number = 8;
     @bindable disableDefaultUi: boolean = false;
     @bindable markers: any = [];
@@ -52,6 +56,7 @@ export class GoogleMaps {
     @bindable polygons: any = [];
     @bindable drawingControl: true;
     @bindable drawingControlOptions: {};
+    @bindable drawSingleElement: boolean = false;
 
     public map: any = null;
     public _renderedMarkers: any[] = [];
@@ -101,9 +106,9 @@ export class GoogleMaps {
          * Events which the element listens to
          */
         this.element.addEventListener(Events.START_MARKER_HIGHLIGHT, (data: any) => {
-                let marker: any = self._renderedMarkers[data.detail.index];
-                marker.setIcon(marker.custom.altIcon);
-                marker.setZIndex((<any>window).google.maps.Marker.MAX_ZINDEX + 1);
+            let marker: any = self._renderedMarkers[data.detail.index];
+            marker.setIcon(marker.custom.altIcon);
+            marker.setZIndex((<any>window).google.maps.Marker.MAX_ZINDEX + 1);
         });
 
         this.element.addEventListener(Events.STOP_MARKER_HIGHLIGHT, (data: any) => {
@@ -132,7 +137,7 @@ export class GoogleMaps {
 
         this._renderedMarkers = [];
 
-        if (this.markerClustering){
+        if (this.markerClustering) {
             this.markerClustering.clearMarkers();
         }
     }
@@ -337,8 +342,12 @@ export class GoogleMaps {
 
     updateCenter() {
         this._mapPromise.then(() => {
-            let latLng = new (<any>window).google.maps.LatLng(parseFloat((<any>this.latitude)), parseFloat((<any>this.longitude)));
-            this.setCenter(latLng);
+            let lat = parseFloat((<any>this.latitude));
+            let lng = parseFloat((<any>this.longitude));
+            if (lat && lng) {
+                let latLng = new (<any>window).google.maps.LatLng(lat, lng);
+                this.setCenter(latLng);
+            }
         });
     }
 
@@ -367,6 +376,12 @@ export class GoogleMaps {
         });
     }
 
+    circleRadiusChanged() {
+        if (this.drawSingleElement) {
+            this.clearDrawnCircles();
+        }
+    }
+
     /**
      * Observing changes in the entire markers object. This is critical in case the user sets marker to a new empty Array,
      * where we need to resubscribe Observers and delete all previously rendered markers.
@@ -374,6 +389,25 @@ export class GoogleMaps {
      * @param newValue
      */
     markersChanged(newValue: Marker[]) {
+        if (this.drawSingleElement) {
+            this.clearDrawnMarkers();
+            this.clearDrawnCircles();
+
+            if (this.circleRadius) {
+                for (let newMarker of newValue) {
+                    let circle = new (<any>window).google.maps.Circle({
+                        map: this.map,
+                        center: { lat: parseFloat(newMarker.latitude.toString()), lng: parseFloat(newMarker.longitude.toString()) },
+                        radius: parseFloat(this.circleRadius.toString())
+                    });
+                    this.drawnCircles.push(circle);
+                }
+            }
+
+            if (newValue.length == 0) {
+                this.clearDrawnCircles();
+            }
+        }
         // If there was a previous subscription
         if (this._markersSubscription !== null) {
             // Dispose of the subscription
@@ -403,18 +437,16 @@ export class GoogleMaps {
                 return this.renderMarker(marker);
             });
             return markerPromises;
-        }).then( (p) => {        
+        }).then((p) => {
             /**
              * Wait for all of the promises to resolve for rendering markers
              */
-            Promise.all(p).then(() =>
-            {
+            Promise.all(p).then(() => {
                 /**
                  * We queue up a task to update the bounds, because in the case of multiple bound properties changing all at once,
                  * we need to let Aurelia handle updating the other properties before we actually trigger a re-render of the map
                  */
-                this.taskQueue.queueTask(() =>
-                {
+                this.taskQueue.queueTask(() => {
                     this.markerClustering.renderClusters(this.map, this._renderedMarkers);
                     this.zoomToMarkerBounds();
                 });
@@ -569,16 +601,26 @@ export class GoogleMaps {
             // Add Event listeners and forward them to as a custom event on the element
             this.drawingManager.addListener('overlaycomplete', evt => {
                 // Add the encoded polyline to the event
-                if (evt.type.toUpperCase() == 'POLYGON' || evt.type.toUpperCase() == 'POLYLINE')
-                {
+                if (evt.type.toUpperCase() == 'POLYGON' || evt.type.toUpperCase() == 'POLYLINE') {
                     Object.assign(evt, {
-                        path: evt.overlay.getPath().getArray().map(x => { return { latitude: x.lat(), longitude: x.lng() }}),
+                        path: evt.overlay.getPath().getArray().map(x => { return { latitude: x.lat(), longitude: x.lng() } }),
                         encode: this.encodePath(evt.overlay.getPath())
                     });
                 }
-                
+
                 dispatchEvent(Events.MAPOVERLAYCOMPLETE, evt, this.element);
             });
+
+            if (this.drawSingleElement) {
+                var _this = this;
+                this.drawingManager.addListener('markercomplete', marker => {
+                    _this.drawnMarkers.push(marker);
+                });
+                this.drawingManager.addListener('circlecomplete', circle => {
+                    _this.drawnCircles.push(circle);
+                });
+            }
+
             return Promise.resolve();
         });
     }
@@ -611,7 +653,7 @@ export class GoogleMaps {
             case 'MARKER':
                 return (<any>window).google.maps.drawing.OverlayType.MARKER;
             default:
-                    return null;
+                return null;
         }
     }
 
@@ -675,7 +717,7 @@ export class GoogleMaps {
      * array.
      * @param polygonObject - paths defining a polygon or a string
      */
-    renderPolygon(polygonObject: any = [])  {
+    renderPolygon(polygonObject: any = []) {
         let paths = polygonObject.paths;
 
         if (!paths) return;
@@ -835,6 +877,20 @@ export class GoogleMaps {
                 this.zoomToMarkerBounds();
             });
         })
+    }
+
+    private clearDrawnCircles() {
+        for (let circle of this.drawnCircles) {
+            circle.setMap(null);
+        }
+        this.drawnCircles = [];
+    }
+
+    private clearDrawnMarkers() {
+        for (let marker of this.drawnMarkers) {
+            marker.setMap(null);
+        }
+        this.drawnMarkers = [];
     }
 }
 
