@@ -280,6 +280,8 @@ define(["require", "exports", "aurelia-dependency-injection", "aurelia-templatin
         };
         GoogleMaps.prototype.markersChanged = function (newValue) {
             var _this_1 = this;
+            if (!this.map)
+                return;
             if (this.drawSingleElement) {
                 this.clearDrawnMarkers();
                 this.clearDrawnCircles();
@@ -293,9 +295,6 @@ define(["require", "exports", "aurelia-dependency-injection", "aurelia-templatin
                         });
                         this.drawnCircles.push(circle);
                     }
-                }
-                if (newValue.length == 0) {
-                    this.clearDrawnCircles();
                 }
             }
             if (this._markersSubscription !== null) {

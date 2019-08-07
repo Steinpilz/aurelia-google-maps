@@ -286,6 +286,8 @@ var GoogleMaps = (function () {
     };
     GoogleMaps.prototype.markersChanged = function (newValue) {
         var _this_1 = this;
+        if (!this.map)
+            return;
         if (this.drawSingleElement) {
             this.clearDrawnMarkers();
             this.clearDrawnCircles();
@@ -299,9 +301,6 @@ var GoogleMaps = (function () {
                     });
                     this.drawnCircles.push(circle);
                 }
-            }
-            if (newValue.length == 0) {
-                this.clearDrawnCircles();
             }
         }
         if (this._markersSubscription !== null) {
