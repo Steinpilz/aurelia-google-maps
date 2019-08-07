@@ -389,6 +389,8 @@ export class GoogleMaps {
      * @param newValue
      */
     markersChanged(newValue: Marker[]) {
+        if (!this.map)
+            return;
         if (this.drawSingleElement) {
             this.clearDrawnMarkers();
             this.clearDrawnCircles();
@@ -402,10 +404,6 @@ export class GoogleMaps {
                     });
                     this.drawnCircles.push(circle);
                 }
-            }
-
-            if (newValue.length == 0) {
-                this.clearDrawnCircles();
             }
         }
         // If there was a previous subscription
