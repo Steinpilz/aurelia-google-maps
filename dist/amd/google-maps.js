@@ -280,27 +280,10 @@ define(["require", "exports", "aurelia-dependency-injection", "aurelia-templatin
         };
         GoogleMaps.prototype.markersChanged = function (newValue) {
             var _this_1 = this;
-            if (!this.map)
-                return;
-            if (this.drawSingleElement) {
-                this.clearDrawnMarkers();
-                this.clearDrawnCircles();
-                if (this.circleRadius) {
-                    for (var _i = 0, newValue_1 = newValue; _i < newValue_1.length; _i++) {
-                        var newMarker = newValue_1[_i];
-                        var circle = new window.google.maps.Circle({
-                            map: this.map,
-                            center: { lat: parseFloat(newMarker.latitude.toString()), lng: parseFloat(newMarker.longitude.toString()) },
-                            radius: parseFloat(this.circleRadius.toString())
-                        });
-                        this.drawnCircles.push(circle);
-                    }
-                }
-            }
             if (this._markersSubscription !== null) {
                 this._markersSubscription.dispose();
-                for (var _a = 0, _b = this._renderedMarkers; _a < _b.length; _a++) {
-                    var marker = _b[_a];
+                for (var _i = 0, _a = this._renderedMarkers; _i < _a.length; _i++) {
+                    var marker = _a[_i];
                     marker.setMap(null);
                 }
                 this._renderedMarkers = [];
@@ -322,6 +305,21 @@ define(["require", "exports", "aurelia-dependency-injection", "aurelia-templatin
                         _this_1.markerClustering.renderClusters(_this_1.map, _this_1._renderedMarkers);
                         _this_1.zoomToMarkerBounds();
                     });
+                    if (_this_1.drawSingleElement) {
+                        _this_1.clearDrawnMarkers();
+                        _this_1.clearDrawnCircles();
+                        if (_this_1.circleRadius) {
+                            for (var _i = 0, newValue_1 = newValue; _i < newValue_1.length; _i++) {
+                                var newMarker = newValue_1[_i];
+                                var circle = new window.google.maps.Circle({
+                                    map: _this_1.map,
+                                    center: { lat: parseFloat(newMarker.latitude.toString()), lng: parseFloat(newMarker.longitude.toString()) },
+                                    radius: parseFloat(_this_1.circleRadius.toString())
+                                });
+                                _this_1.drawnCircles.push(circle);
+                            }
+                        }
+                    }
                 });
             });
         };

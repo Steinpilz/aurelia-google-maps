@@ -389,23 +389,6 @@ export class GoogleMaps {
      * @param newValue
      */
     markersChanged(newValue: Marker[]) {
-        if (!this.map)
-            return;
-        if (this.drawSingleElement) {
-            this.clearDrawnMarkers();
-            this.clearDrawnCircles();
-
-            if (this.circleRadius) {
-                for (let newMarker of newValue) {
-                    let circle = new (<any>window).google.maps.Circle({
-                        map: this.map,
-                        center: { lat: parseFloat(newMarker.latitude.toString()), lng: parseFloat(newMarker.longitude.toString()) },
-                        radius: parseFloat(this.circleRadius.toString())
-                    });
-                    this.drawnCircles.push(circle);
-                }
-            }
-        }
         // If there was a previous subscription
         if (this._markersSubscription !== null) {
             // Dispose of the subscription
@@ -448,6 +431,23 @@ export class GoogleMaps {
                     this.markerClustering.renderClusters(this.map, this._renderedMarkers);
                     this.zoomToMarkerBounds();
                 });
+
+                if (this.drawSingleElement) {
+                    this.clearDrawnMarkers();
+                    this.clearDrawnCircles();
+
+                    if (this.circleRadius) {
+                        for (let newMarker of newValue) {
+                            let circle = new (<any>window).google.maps.Circle({
+                                map: this.map,
+                                center: { lat: parseFloat(newMarker.latitude.toString()), lng: parseFloat(newMarker.longitude.toString()) },
+                                radius: parseFloat(this.circleRadius.toString())
+                            });
+                            this.drawnCircles.push(circle);
+                        }
+                    }
+                }
+
             })
         });
     }
