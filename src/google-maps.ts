@@ -431,23 +431,24 @@ export class GoogleMaps {
                     this.markerClustering.renderClusters(this.map, this._renderedMarkers);
                     this.zoomToMarkerBounds();
                 });
+                
+                this.taskQueue.queueTask(() => {
+                    if (this.drawSingleElement) {
+                        this.clearDrawnMarkers();
+                        this.clearDrawnCircles();
 
-                if (this.drawSingleElement) {
-                    this.clearDrawnMarkers();
-                    this.clearDrawnCircles();
-
-                    if (this.circleRadius) {
-                        for (let newMarker of newValue) {
-                            let circle = new (<any>window).google.maps.Circle({
-                                map: this.map,
-                                center: { lat: parseFloat(newMarker.latitude.toString()), lng: parseFloat(newMarker.longitude.toString()) },
-                                radius: parseFloat(this.circleRadius.toString())
-                            });
-                            this.drawnCircles.push(circle);
+                        if (this.circleRadius) {
+                            for (let newMarker of newValue) {
+                                let circle = new (<any>window).google.maps.Circle({
+                                    map: this.map,
+                                    center: { lat: parseFloat(newMarker.latitude.toString()), lng: parseFloat(newMarker.longitude.toString()) },
+                                    radius: parseFloat(this.circleRadius.toString())
+                                });
+                                this.drawnCircles.push(circle);
+                            }
                         }
                     }
-                }
-
+                });
             })
         });
     }

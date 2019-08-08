@@ -305,21 +305,23 @@ define(["require", "exports", "aurelia-dependency-injection", "aurelia-templatin
                         _this_1.markerClustering.renderClusters(_this_1.map, _this_1._renderedMarkers);
                         _this_1.zoomToMarkerBounds();
                     });
-                    if (_this_1.drawSingleElement) {
-                        _this_1.clearDrawnMarkers();
-                        _this_1.clearDrawnCircles();
-                        if (_this_1.circleRadius) {
-                            for (var _i = 0, newValue_1 = newValue; _i < newValue_1.length; _i++) {
-                                var newMarker = newValue_1[_i];
-                                var circle = new window.google.maps.Circle({
-                                    map: _this_1.map,
-                                    center: { lat: parseFloat(newMarker.latitude.toString()), lng: parseFloat(newMarker.longitude.toString()) },
-                                    radius: parseFloat(_this_1.circleRadius.toString())
-                                });
-                                _this_1.drawnCircles.push(circle);
+                    _this_1.taskQueue.queueTask(function () {
+                        if (_this_1.drawSingleElement) {
+                            _this_1.clearDrawnMarkers();
+                            _this_1.clearDrawnCircles();
+                            if (_this_1.circleRadius) {
+                                for (var _i = 0, newValue_1 = newValue; _i < newValue_1.length; _i++) {
+                                    var newMarker = newValue_1[_i];
+                                    var circle = new window.google.maps.Circle({
+                                        map: _this_1.map,
+                                        center: { lat: parseFloat(newMarker.latitude.toString()), lng: parseFloat(newMarker.longitude.toString()) },
+                                        radius: parseFloat(_this_1.circleRadius.toString())
+                                    });
+                                    _this_1.drawnCircles.push(circle);
+                                }
                             }
                         }
-                    }
+                    });
                 });
             });
         };
